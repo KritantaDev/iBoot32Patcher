@@ -29,12 +29,22 @@
 
 int patch_boot_args(struct iboot_img* iboot_in, const char* boot_args) {
 	printf("%s: Entering...\n", __FUNCTION__);
+	
+	int new = 0;
 
 	/* Find the pre-defined boot-args from iBoot "rd=md0 ..." */
 	void* default_boot_args_str_loc = memstr(iboot_in->buf, iboot_in->len, DEFAULT_BOOTARGS_STR);
 	if(!default_boot_args_str_loc) {
-		printf("%s: Unable to find default boot-args string!\n", __FUNCTION__);
-		return 0;
+		void* default_boot_args_str_loc = memstr(iboot_in->buf, iboot_in->len, DEFAULT_BOOTARGS_STR_5000);
+		if(!default_boot_args_str_loc) {
+			printf("%s: Unable to find default boot-args string!\n", __FUNCTION__);
+			return 0;
+		}
+		else 
+		{
+			printf("%s: Looks like we're running on WatchOS 6.\n", __FUNCTION__);
+			new = 1;
+		}
 	}
 	printf("%s: Default boot-args string is at %p\n", __FUNCTION__, (void*) GET_IBOOT_FILE_OFFSET(iboot_in, default_boot_args_str_loc));
 
@@ -51,12 +61,12 @@ int patch_boot_args(struct iboot_img* iboot_in, const char* boot_args) {
 		printf("%s: Relocating boot-args string...\n", __FUNCTION__);
 
 		/* Find the "Reliance on this cert..." string. */
-		char* reliance_cert_str_loc = (char*) memstr(iboot_in->buf, iboot_in->len, RELIANCE_CERT_STR);
+		char* reliance_cert_str_loc = (char*) memstr(iboot_in->buf, iboot_in->len, new ? CERT_STR : RELIANCE_CERT_STR );
 		if(!reliance_cert_str_loc) {
-			printf("%s: Unable to find \"%s\" string!\n", __FUNCTION__, RELIANCE_CERT_STR);
+			printf("%s: Unable to find \"%s\" string!\n", __FUNCTION__,  new ? CERT_STR : RELIANCE_CERT_STR );
 			return 0;
 		}
-		printf("%s: \"%s\" string found at %p\n", __FUNCTION__, RELIANCE_CERT_STR, GET_IBOOT_FILE_OFFSET(iboot_in, reliance_cert_str_loc));
+		printf("%s: \"%s\" string found at %p\n", __FUNCTION__,  new ? CERT_STR : RELIANCE_CERT_STR , GET_IBOOT_FILE_OFFSET(iboot_in, reliance_cert_str_loc));
 
 		/* Point the boot-args xref to the "Reliance on this cert..." string. */
 		printf("%s: Pointing default boot-args xref to %p...\n", __FUNCTION__, GET_IBOOT_ADDR(iboot_in, reliance_cert_str_loc));
