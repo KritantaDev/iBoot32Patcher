@@ -24,7 +24,9 @@
 
 #define DEBUG_ENABLED_DTRE_VAR_STR "debug-enabled"
 #define DEFAULT_BOOTARGS_STR "rd=md0 nand-enable-reformat=1 -progress"
+#define DEFAULT_BOOTARGS_STR_5000 "rd=md0 -progress -restore"
 #define RELIANCE_CERT_STR "Reliance on this certificate"
+#define CERT_STR "Apple Inc.1"
 
 int patch_boot_args(struct iboot_img* iboot_in, const char* boot_args);
 int patch_cmd_handler(struct iboot_img* iboot_in, const char* cmd_str, uint32_t ptr);
